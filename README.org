@@ -1,0 +1,5 @@
+* GitHub Notifier
+
+A toy application that waits in the background and asks GitHub for any notifications for the current user.
+
+** TODO Configuration
