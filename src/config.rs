@@ -1,17 +1,9 @@
 use miniserde::{json, Deserialize};
 use std::env;
 use std::fs;
-use std::path::PathBuf;
 use std::process::Command;
 
-fn config_file_path() -> PathBuf {
-    let base = env::var("XDG_CONFIG_DIR")
-        .ok()
-        .and_then(|d| Some(PathBuf::from(d)))
-        .or(env::home_dir().and_then(|d| Some(d.join(".config"))))
-        .unwrap_or_default();
-    base.join("gh-notifier.json")
-}
+use crate::xdg;
 
 #[derive(Debug)]
 pub(crate) struct Config {
@@ -28,7 +20,7 @@ struct PartialConfig {
 }
 
 fn from_file() -> PartialConfig {
-    fs::read_to_string(&config_file_path())
+    fs::read_to_string(&xdg::config_file_path())
         .ok()
         .and_then(|s| json::from_str(&s).ok())
         .unwrap_or(PartialConfig {

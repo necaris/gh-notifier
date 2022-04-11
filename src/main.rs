@@ -5,6 +5,7 @@ use tinyget::{Request, Response};
 
 mod config;
 mod models;
+mod xdg;
 
 // TODO: alerting template strings: DOCUMENT!
 // TODO: handle errors here, e.g. unknown fields
