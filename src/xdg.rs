@@ -3,6 +3,7 @@ use std::fs;
 use std::io;
 use std::path::PathBuf;
 
+#[allow(deprecated)]
 pub(crate) fn config_file_path() -> PathBuf {
     let base = env::var("XDG_CONFIG_HOME")
         .ok()
@@ -13,7 +14,7 @@ pub(crate) fn config_file_path() -> PathBuf {
     base.join("gh-notifier.json")
 }
 
-// $XDG_STATE_HOME defines the base directory relative to which user-specific state files should be stored. If $XDG_STATE_HOME is either not set or empty, a default equal to $HOME/.local/state should be used.
+#[allow(deprecated)]
 pub(crate) fn state_file_path() -> PathBuf {
     let base = env::var("XDG_STATE_HOME")
         .ok()
