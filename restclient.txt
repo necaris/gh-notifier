@@ -1,0 +1,7 @@
+#-*- restclient -*-
+:gh-token := (password-store-get "github/personal-token")
+GET https://api.github.com/notifications
+User-Agent: Emacs REST Client
+Accept: application/vnd.github.v3+json
+Authorization: Bearer :gh-token
+# If-Modified-Since: Sun, 10 Apr 2022 15:16:27 GMT
