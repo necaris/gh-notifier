@@ -1,6 +1,4 @@
 use std::env;
-use std::fs;
-use std::io;
 use std::path::PathBuf;
 
 #[allow(deprecated)]

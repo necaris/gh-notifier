@@ -8,15 +8,19 @@ use crate::xdg;
 #[derive(Debug)]
 pub(crate) struct Config {
     pub token: String,
-    pub command: (String, Vec<String>),
+    // TODO: make this some kind of fancy thing, rather than
+    // a single script we call
+    pub command: String,
     // TODO: add different behavior options, e.g. maximum poll interval,
     // whether to repeat notifications already sent, etc
+    pub unread_only: bool,
 }
 
 #[derive(Deserialize, Debug, Clone)]
 struct PartialConfig {
     token: Option<String>,
     command: Option<String>,
+    unread_only: Option<bool>,
 }
 
 fn from_file() -> PartialConfig {
@@ -26,6 +30,7 @@ fn from_file() -> PartialConfig {
         .unwrap_or(PartialConfig {
             token: None,
             command: None,
+            unread_only: None,
         })
 }
 
@@ -33,6 +38,9 @@ fn from_env() -> PartialConfig {
     PartialConfig {
         token: env::var("GITHUB_TOKEN").ok(),
         command: env::var("GH_NOTIFIER_COMMAND").ok(),
+        unread_only: env::var("GH_NOTIFIER_UNREAD_ONLY")
+            .ok()
+            .map(|s| s == "true"),
     }
 }
 
@@ -60,19 +68,7 @@ fn from_git_config() -> PartialConfig {
     PartialConfig {
         token: get_git_config_value("github.oauth-token"),
         command: get_git_config_value("github.notifier-command"),
-    }
-}
-
-fn parse_command_string(s: &str) -> Option<(String, Vec<String>)> {
-    // TODO: verify this program is callable
-    let mut command_words = s.split(' ');
-    match command_words.next() {
-        Some(program) => {
-            let program = program.to_owned();
-            let args: Vec<String> = command_words.map(|s| s.to_owned()).collect();
-            Some((program, args))
-        }
-        None => None,
+        unread_only: get_git_config_value("github.notifier-unread-only").map(|s| s == "true"),
     }
 }
 
@@ -85,17 +81,16 @@ pub(crate) fn load() -> Option<Config> {
     let g = from_git_config();
     let token = e.token.or(f.token.or(g.token));
     let command = e.command.or(f.command.or(g.command));
+    let unread_only = e.unread_only.or(f.unread_only.or(g.unread_only));
 
-    match (token, command) {
-        (Some(tkn), Some(cmd_str)) => {
-            if let Some(parsed_command) = parse_command_string(&cmd_str) {
-                Some(Config {
-                    token: tkn.trim().to_owned(),
-                    command: parsed_command,
-                })
-            } else {
-                None
-            }
+    match (token, command, unread_only) {
+        (Some(tkn), Some(cmd_str), uo) => {
+            // TODO: verify that `command` is callable
+            Some(Config {
+                token: tkn.trim().to_owned(),
+                command: cmd_str.trim().to_owned(),
+                unread_only: uo.unwrap_or(false),
+            })
         }
         _ => None,
     }

@@ -3,3 +3,21 @@
 A toy application that waits in the background and asks GitHub for any notifications for the current user.
 
 ** TODO Configuration
+
+*** Fields
+=oauth-token= needs to be provided. Recommend a GitHub Personal Access Token -- link to page.
+
+=command= is how we'll notify you. Recommend a little shell script -- it'll get the following environment variables:
+    - =NOTIFICATION_ID= - the ID of the notification, per GitHub
+    - =NOTIFICATION_ID= - the ID of the notification, per GitHub
+    - =NOTIFICATION_ID= - the ID of the notification, per GitHub
+    - =NOTIFICATION_ID= - the ID of the notification, per GitHub
+    - =NOTIFICATION_ID= - the ID of the notification, per GitHub
+    - =NOTIFICATION_ID= - the ID of the notification, per GitHub
+
+=unread_only= is whether we notify only for unreads. By default, this is false.
+
+*** Locations
+    - Environment variables: =GH_NOTIFIER_*=
+    - File, in JSON format: =~/.config/gh-notifier.json=
+    - Git config, under the =github= key
