@@ -14,6 +14,7 @@ pub(crate) struct Config {
     // TODO: add different behavior options, e.g. maximum poll interval,
     // whether to repeat notifications already sent, etc
     pub unread_only: bool,
+    pub poll_interval: u32,
 }
 
 #[derive(Deserialize, Debug, Clone)]
@@ -21,6 +22,7 @@ struct PartialConfig {
     token: Option<String>,
     command: Option<String>,
     unread_only: Option<bool>,
+    poll_interval: Option<u32>,
 }
 
 fn from_file() -> PartialConfig {
@@ -31,6 +33,7 @@ fn from_file() -> PartialConfig {
             token: None,
             command: None,
             unread_only: None,
+            poll_interval: None,
         })
 }
 
@@ -41,6 +44,10 @@ fn from_env() -> PartialConfig {
         unread_only: env::var("GH_NOTIFIER_UNREAD_ONLY")
             .ok()
             .map(|s| s == "true"),
+        poll_interval: env::var("GH_NOTIFIER_POLL_INTERVAL")
+            .ok()
+            .map(|s| s.parse::<u32>().ok())
+            .flatten(),
     }
 }
 
@@ -69,6 +76,9 @@ fn from_git_config() -> PartialConfig {
         token: get_git_config_value("github.oauth-token"),
         command: get_git_config_value("github.notifier-command"),
         unread_only: get_git_config_value("github.notifier-unread-only").map(|s| s == "true"),
+        poll_interval: get_git_config_value("github.notifier-poll-interval")
+            .map(|s| s.parse::<u32>().ok())
+            .flatten(),
     }
 }
 
@@ -82,14 +92,16 @@ pub(crate) fn load() -> Option<Config> {
     let token = e.token.or(f.token.or(g.token));
     let command = e.command.or(f.command.or(g.command));
     let unread_only = e.unread_only.or(f.unread_only.or(g.unread_only));
+    let poll_interval = e.poll_interval.or(f.poll_interval.or(g.poll_interval));
 
-    match (token, command, unread_only) {
-        (Some(tkn), Some(cmd_str), uo) => {
+    match (token, command, unread_only, poll_interval) {
+        (Some(tkn), Some(cmd_str), uo, pi) => {
             // TODO: verify that `command` is callable
             Some(Config {
                 token: tkn.trim().to_owned(),
                 command: cmd_str.trim().to_owned(),
                 unread_only: uo.unwrap_or(false),
+                poll_interval: pi.unwrap_or(60),
             })
         }
         _ => None,
